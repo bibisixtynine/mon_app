@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robot dans l'espace</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.8) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 40% 70%, rgba(255,255,255,0.7) 0 1px, transparent 2px),
+        radial-gradient(circle at 70% 80%, rgba(255,255,255,0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 10% 85%, rgba(173,216,255,0.8) 0 1px, transparent 2px),
+        radial-gradient(circle at center, #1f2f6b 0%, #0c1335 45%, #040814 100%);
+      background-size: 240px 240px, 320px 320px, 280px 280px, 360px 360px, 300px 300px, cover;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(130, 170, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 85% 25%, rgba(255, 120, 200, 0.12), transparent 25%),
+        radial-gradient(circle at 50% 85%, rgba(120, 255, 220, 0.1), transparent 28%);
+      pointer-events: none;
+    }
+
+    .space {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .system {
+      position: relative;
+      width: min(82vw, 760px);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main-cluster {
+      position: absolute;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .main-robot {
+      width: min(40vw, 360px);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 0 24px rgba(120, 180, 255, 0.55));
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .robot-orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .robot-orbit img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--size);
+      height: auto;
+      transform-origin: center calc(var(--radius));
+      filter: drop-shadow(0 0 18px rgba(120, 180, 255, 0.45));
+      animation: orbit var(--duration) linear infinite, bob var(--bob-duration) ease-in-out infinite;
+      animation-direction: var(--direction, normal), normal;
+    }
+
+    .robot-a {
+      width: 430px;
+      height: 430px;
+      --size: 92px;
+      --radius: 215px;
+      --duration: 9s;
+      --bob-duration: 3.4s;
+      --direction: normal;
+    }
+
+    .robot-b {
+      width: 560px;
+      height: 560px;
+      --size: 68px;
+      --radius: 280px;
+      --duration: 6.5s;
+      --bob-duration: 2.8s;
+      --direction: reverse;
+    }
+
+    .robot-c {
+      width: 660px;
+      height: 660px;
+      --size: 132px;
+      --radius: 330px;
+      --duration: 12s;
+      --bob-duration: 4.2s;
+      --direction: normal;
+    }
+
+    .robot-d {
+      width: 500px;
+      height: 500px;
+      --size: 78px;
+      --radius: 250px;
+      --duration: 8s;
+      --bob-duration: 3.1s;
+      --direction: reverse;
+    }
+
+    .robot-b img {
+      animation-delay: -1.2s, -0.7s;
+    }
+
+    .robot-c img {
+      animation-delay: -3.4s, -1.5s;
+    }
+
+    .robot-d img {
+      animation-delay: -5.1s, -0.2s;
+    }
+
+    .caption {
+      color: rgba(255,255,255,0.9);
+      font-size: clamp(1rem, 2.2vw, 1.4rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255,255,255,0.35);
+      text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      .system {
+        width: min(94vw, 520px);
+      }
+
+      .main-robot {
+        width: min(46vw, 240px);
+      }
+
+      .robot-a {
+        width: 290px;
+        height: 290px;
+        --size: 64px;
+        --radius: 145px;
+      }
+
+      .robot-b {
+        width: 380px;
+        height: 380px;
+        --size: 50px;
+        --radius: 190px;
+      }
+
+      .robot-c {
+        width: 450px;
+        height: 450px;
+        --size: 88px;
+        --radius: 225px;
+      }
+
+      .robot-d {
+        width: 340px;
+        height: 340px;
+        --size: 56px;
+        --radius: 170px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .main-robot,
+      .robot-orbit img {
+        animation: none;
+      }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-14px); }
+    }
+
+    @keyframes bob {
+      0%, 100% { margin-top: 0px; }
+      50% { margin-top: -10px; }
+    }
+
+    @keyframes orbit {
+      from {
+        transform: translate(-50%, calc(-1 * var(--radius))) rotate(0deg);
+      }
+      to {
+        transform: translate(-50%, calc(-1 * var(--radius))) rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="space">
+    <div class="scene">
+      <div class="system">
+        <div class="robot-orbit robot-a"><img src="robot.png" alt="Petit robot spatial" /></div>
+        <div class="robot-orbit robot-b"><img src="robot.png" alt="Robot spatial" /></div>
+        <div class="robot-orbit robot-c"><img src="robot.png" alt="Grand robot spatial" /></div>
+        <div class="robot-orbit robot-d"><img src="robot.png" alt="Robot tournoyant" /></div>
+
+        <div class="main-cluster">
+          <img class="main-robot" src="robot.png" alt="Robot principal" />
+          <div class="caption">Escadron de robots en mission spatiale</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

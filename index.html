@@ -19,6 +19,31 @@
         canvas {
             display: block;
         }
+        
+        #soundButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        #soundButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        #soundButton.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
     </style>
 </head>
 <body>
@@ -148,6 +173,205 @@
         // Liste des particules
         const particles = [];
         
+        // Audio Context pour les sons spatiaux
+        let audioContext = null;
+        let masterGain = null;
+        
+        // Initialiser l'audio
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioContext.createGain();
+                masterGain.gain.value = 0.3; // Volume global
+                masterGain.connect(audioContext.destination);
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+        
+        // Créer un son de fond spatial (bruit blanc filtré)
+        function createSpaceAmbience() {
+            const bufferSize = audioContext.sampleRate * 2;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * 0.5;
+            }
+            
+            const noise = audioContext.createBufferSource();
+            noise.buffer = buffer;
+            noise.loop = true;
+            
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 200;
+            
+            const gain = audioContext.createGain();
+            gain.gain.value = 0.05;
+            
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterGain);
+            noise.start();
+            
+            return { noise, filter, gain };
+        }
+        
+        // Créer un son de rebond sur les murs
+        function playWallBounce() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(150 + Math.random() * 100, audioContext.currentTime);
+            
+            gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+        
+        // Créer un son de collision entre ronds
+        function playCollision() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(200 + Math.random() * 150, audioContext.currentTime);
+            
+            gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+        
+        // Créer un son de missile
+        function playMissile() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+            
+            gain.gain.setValueAtTime(0.05, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+        
+        // Créer un son d'explosion/division
+        function playExplosion() {
+            if (!audioContext) return;
+            
+            const bufferSize = audioContext.sampleRate * 0.5;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * 0.8;
+            }
+            
+            const noise = audioContext.createBufferSource();
+            noise.buffer = buffer;
+            
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(800, audioContext.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
+            
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterGain);
+            
+            noise.start();
+        }
+        
+        // Créer un son de fusée
+        function playRocketSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(80, audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(120, audioContext.currentTime + 0.5);
+            
+            gain.gain.setValueAtTime(0.03, audioContext.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        // Créer un son de clignement d'yeux
+        function playBlink() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+            
+            gain.gain.setValueAtTime(0.02, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+        
+        // Créer un son de particule
+        function playParticle() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800 + Math.random() * 400, audioContext.currentTime);
+            
+            gain.gain.setValueAtTime(0.01, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+        
         // Étoiles en arrière-plan
         const stars = [];
         for (let i = 0; i < 200; i++) {
@@ -195,6 +419,70 @@
         // Position actuelle des nébuleuses
         const nebulasPosition = nebulas.map(n => ({ x: n.x, y: n.y }));
         
+        // Fusées
+        const rockets = [];
+        const rocketColors = ['#ffffff', '#cccccc', '#eeeeee'];
+        
+        // Créer des fusées
+        function createRocket() {
+            const side = Math.floor(Math.random() * 4); // 0: haut, 1: droite, 2: bas, 3: gauche
+            let x, y;
+            
+            switch(side) {
+                case 0: // Haut
+                    x = Math.random() * canvas.width;
+                    y = -50;
+                    break;
+                case 1: // Droite
+                    x = canvas.width + 50;
+                    y = Math.random() * canvas.height;
+                    break;
+                case 2: // Bas
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + 50;
+                    break;
+                case 3: // Gauche
+                    x = -50;
+                    y = Math.random() * canvas.height;
+                    break;
+            }
+            
+            const angle = Math.atan2(canvas.height/2 - y, canvas.width/2 - x);
+            const speed = 1 + Math.random() * 1.5;
+            
+            rockets.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                radius: 15,
+                color: rocketColors[Math.floor(Math.random() * rocketColors.length)],
+                missileTimer: Math.random() * 200 + 100,
+                missileCooldown: 120
+            });
+        }
+        
+        // Initialiser quelques fusées
+        for (let i = 0; i < 3; i++) {
+            createRocket();
+        }
+        
+        // Missiles
+        const missiles = [];
+        
+        // Créer un missile
+        function createMissile(rocket) {
+            missiles.push({
+                x: rocket.x,
+                y: rocket.y,
+                vx: rocket.vx + (Math.random() - 0.5) * 2,
+                vy: rocket.vy + (Math.random() - 0.5) * 2,
+                radius: 4,
+                color: '#ff6600',
+                life: 300
+            });
+        }
+        
         // Gérer les collisions entre les ronds
         function handleCollisions() {
             for (let i = 0; i < balls.length; i++) {
@@ -223,6 +511,9 @@
                                 decay: Math.random() * 0.03 + 0.02
                             });
                         }
+                        
+                        // Jouer le son de collision
+                        playCollision();
                         
                         // Calculer l'angle de collision
                         const angle = Math.atan2(dy, dx);
@@ -357,6 +648,188 @@
             });
         }
         
+        // Mettre à jour et dessiner les fusées
+        function updateRockets() {
+            for (let i = rockets.length - 1; i >= 0; i--) {
+                const rocket = rockets[i];
+                
+                // Mettre à jour la position
+                rocket.x += rocket.vx;
+                rocket.y += rocket.vy;
+                
+                // Décrémenter le timer des missiles
+                rocket.missileTimer--;
+                if (rocket.missileTimer <= 0) {
+                    createMissile(rocket);
+                    rocket.missileTimer = rocket.missileCooldown + Math.random() * 100;
+                }
+                
+                // Supprimer les fusées hors écran
+                if (rocket.x < -100 || rocket.x > canvas.width + 100 || 
+                    rocket.y < -100 || rocket.y > canvas.height + 100) {
+                    rockets.splice(i, 1);
+                    createRocket(); // Créer une nouvelle fusée
+                } else {
+                    // Dessiner la fusée
+                    ctx.save();
+                    ctx.translate(rocket.x, rocket.y);
+                    
+                    // Calculer l'angle de rotation
+                    const angle = Math.atan2(rocket.vy, rocket.vx);
+                    ctx.rotate(angle);
+                    
+                    // Corps de la fusée
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 15, 8, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = rocket.color;
+                    ctx.fill();
+                    
+                    // Pointe de la fusée
+                    ctx.beginPath();
+                    ctx.moveTo(10, -5);
+                    ctx.lineTo(20, 0);
+                    ctx.lineTo(10, 5);
+                    ctx.fillStyle = '#ff4444';
+                    ctx.fill();
+                    
+                    // Flamme du moteur
+                    ctx.beginPath();
+                    ctx.moveTo(-12, -4);
+                    ctx.lineTo(-20 - Math.random() * 10, 0);
+                    ctx.lineTo(-12, 4);
+                    ctx.fillStyle = '#ffaa00';
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        // Mettre à jour et dessiner les missiles
+        function updateMissiles() {
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                
+                // Mettre à jour la position
+                missile.x += missile.vx;
+                missile.y += missile.vy;
+                
+                // Réduire la vie
+                missile.life--;
+                
+                // Supprimer si vie écoulée ou hors écran
+                if (missile.life <= 0 || 
+                    missile.x < -50 || missile.x > canvas.width + 50 ||
+                    missile.y < -50 || missile.y > canvas.height + 50) {
+                    missiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Dessiner le missile
+                ctx.beginPath();
+                ctx.arc(missile.x, missile.y, missile.radius, 0, Math.PI * 2);
+                ctx.fillStyle = missile.color;
+                ctx.fill();
+                
+                // Traînée du missile
+                ctx.beginPath();
+                ctx.arc(missile.x - missile.vx * 3, missile.y - missile.vy * 3, missile.radius * 0.7, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 100, 0, ${missile.life / 300})`;
+                ctx.fill();
+                
+                // Vérifier les collisions avec les ronds
+                for (let j = 0; j < balls.length; j++) {
+                    const ball = balls[j];
+                    const dx = missile.x - ball.x;
+                    const dy = missile.y - ball.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ball.radius + missile.radius) {
+                        // Collision détectée - diviser le rond
+                        divideBall(ball, missile.x, missile.y);
+                        missiles.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Diviser un rond en deux plus petits
+        function divideBall(ball, impactX, impactY) {
+            // Créer 2 nouveaux ronds plus petits
+            const newSize = ball.radius * 0.6;
+            const newColor1 = ball.color;
+            const newColor2 = adjustColor(ball.color, 20);
+            
+            // Position de séparation
+            const dx = impactX - ball.x;
+            const dy = impactY - ball.y;
+            const angle = Math.atan2(dy, dx);
+            
+            // Premier nouveau rond
+            const ball1 = {
+                x: ball.x + Math.cos(angle) * ball.radius * 0.5,
+                y: ball.y + Math.sin(angle) * ball.radius * 0.5,
+                radius: newSize,
+                color: newColor1,
+                vx: ball.vx * 0.8 + Math.cos(angle) * 3,
+                vy: ball.vy * 0.8 + Math.sin(angle) * 3,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: ball.blinkTimer,
+                isBlinking: ball.isBlinking,
+                eyes: {
+                    left: { x: -newSize * 0.25, y: -newSize * 0.12, size: newSize * 0.28 },
+                    right: { x: newSize * 0.25, y: -newSize * 0.12, size: newSize * 0.28 }
+                }
+            };
+            
+            // Deuxième nouveau rond
+            const ball2 = {
+                x: ball.x - Math.cos(angle) * ball.radius * 0.5,
+                y: ball.y - Math.sin(angle) * ball.radius * 0.5,
+                radius: newSize,
+                color: newColor2,
+                vx: ball.vx * 0.8 - Math.cos(angle) * 3,
+                vy: ball.vy * 0.8 - Math.sin(angle) * 3,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: ball.blinkTimer + 50,
+                isBlinking: ball.isBlinking,
+                eyes: {
+                    left: { x: -newSize * 0.25, y: -newSize * 0.12, size: newSize * 0.28 },
+                    right: { x: newSize * 0.25, y: -newSize * 0.12, size: newSize * 0.28 }
+                }
+            };
+            
+            // Créer des particules d'explosion
+            for (let k = 0; k < 15; k++) {
+                particles.push({
+                    x: ball.x,
+                    y: ball.y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    radius: Math.random() * 6 + 2,
+                    color: ball.color,
+                    alpha: 1,
+                    decay: Math.random() * 0.04 + 0.02
+                });
+            }
+            
+            // Remplacer l'ancien rond par les deux nouveaux
+            const index = balls.indexOf(ball);
+            balls.splice(index, 1, ball1, ball2);
+        }
+        
+        // Fonction pour ajuster la couleur (rendre plus claire ou plus foncée)
+        function adjustColor(color, amount) {
+            const num = parseInt(color.replace("#", ""), 16);
+            const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+            const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+            const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+            return "#" + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+        }
+        
         // Animation
         function animate() {
             // Effacer le canvas avec un léger effet de traînée
@@ -368,6 +841,12 @@
             
             // Dessiner les étoiles
             drawStars();
+            
+            // Mettre à jour et dessiner les fusées
+            updateRockets();
+            
+            // Mettre à jour et dessiner les missiles
+            updateMissiles();
             
             // Mettre à jour et dessiner tous les ronds
             balls.forEach((ball, index) => {
@@ -385,18 +864,23 @@
                 );
                 if (distance > 2) {
                     createParticles(ball);
+                    if (Math.random() > 0.7) {
+                        playParticle();
+                    }
                 }
                 
                 // Rebondir sur les murs gauche et droite
                 if (ball.x - ball.radius < 0) {
                     ball.x = ball.radius;
                     ball.vx = -ball.vx;
-                    createParticles(ball); // Plus de particules au rebond
+                    createParticles(ball);
+                    playWallBounce();
                 }
                 if (ball.x + ball.radius > canvas.width) {
                     ball.x = canvas.width - ball.radius;
                     ball.vx = -ball.vx;
                     createParticles(ball);
+                    playWallBounce();
                 }
                 
                 // Rebondir sur le haut et le bas
@@ -404,11 +888,13 @@
                     ball.y = ball.radius;
                     ball.vy = -ball.vy;
                     createParticles(ball);
+                    playWallBounce();
                 }
                 if (ball.y + ball.radius > canvas.height) {
                     ball.y = canvas.height - ball.radius;
                     ball.vy = -ball.vy;
                     createParticles(ball);
+                    playWallBounce();
                 }
                 
                 // Calculer l'offset des yeux basé sur la direction du mouvement
@@ -422,6 +908,7 @@
                 if (ball.blinkTimer > 180 + Math.random() * 120) {
                     ball.isBlinking = true;
                     ball.blinkTimer = 0;
+                    playBlink();
                 }
                 if (ball.blinkTimer > 10) {
                     ball.isBlinking = false;

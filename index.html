@@ -1,254 +1,517 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Robot dans l'espace</title>
-  <style>
-    :root {
-      color-scheme: dark;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9) 0 1px, transparent 2px),
-        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.8) 0 1.5px, transparent 2.5px),
-        radial-gradient(circle at 40% 70%, rgba(255,255,255,0.7) 0 1px, transparent 2px),
-        radial-gradient(circle at 70% 80%, rgba(255,255,255,0.85) 0 1px, transparent 2px),
-        radial-gradient(circle at 10% 85%, rgba(173,216,255,0.8) 0 1px, transparent 2px),
-        radial-gradient(circle at center, #1f2f6b 0%, #0c1335 45%, #040814 100%);
-      background-size: 240px 240px, 320px 320px, 280px 280px, 360px 360px, 300px 300px, cover;
-      position: relative;
-    }
-
-    body::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 15% 15%, rgba(130, 170, 255, 0.18), transparent 30%),
-        radial-gradient(circle at 85% 25%, rgba(255, 120, 200, 0.12), transparent 25%),
-        radial-gradient(circle at 50% 85%, rgba(120, 255, 220, 0.1), transparent 28%);
-      pointer-events: none;
-    }
-
-    .space {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .scene {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .system {
-      position: relative;
-      width: min(82vw, 760px);
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .main-cluster {
-      position: absolute;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-    }
-
-    .main-robot {
-      width: min(40vw, 360px);
-      height: auto;
-      display: block;
-      filter: drop-shadow(0 0 24px rgba(120, 180, 255, 0.55));
-      animation: float 4s ease-in-out infinite;
-    }
-
-    .robot-orbit {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      border: 1px dashed rgba(255,255,255,0.08);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .robot-orbit img {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: var(--size);
-      height: auto;
-      transform-origin: center calc(var(--radius));
-      filter: drop-shadow(0 0 18px rgba(120, 180, 255, 0.45));
-      animation: orbit var(--duration) linear infinite, bob var(--bob-duration) ease-in-out infinite;
-      animation-direction: var(--direction, normal), normal;
-    }
-
-    .robot-a {
-      width: 430px;
-      height: 430px;
-      --size: 92px;
-      --radius: 215px;
-      --duration: 9s;
-      --bob-duration: 3.4s;
-      --direction: normal;
-    }
-
-    .robot-b {
-      width: 560px;
-      height: 560px;
-      --size: 68px;
-      --radius: 280px;
-      --duration: 6.5s;
-      --bob-duration: 2.8s;
-      --direction: reverse;
-    }
-
-    .robot-c {
-      width: 660px;
-      height: 660px;
-      --size: 132px;
-      --radius: 330px;
-      --duration: 12s;
-      --bob-duration: 4.2s;
-      --direction: normal;
-    }
-
-    .robot-d {
-      width: 500px;
-      height: 500px;
-      --size: 78px;
-      --radius: 250px;
-      --duration: 8s;
-      --bob-duration: 3.1s;
-      --direction: reverse;
-    }
-
-    .robot-b img {
-      animation-delay: -1.2s, -0.7s;
-    }
-
-    .robot-c img {
-      animation-delay: -3.4s, -1.5s;
-    }
-
-    .robot-d img {
-      animation-delay: -5.1s, -0.2s;
-    }
-
-    .caption {
-      color: rgba(255,255,255,0.9);
-      font-size: clamp(1rem, 2.2vw, 1.4rem);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-shadow: 0 0 12px rgba(255,255,255,0.35);
-      text-align: center;
-    }
-
-    @media (max-width: 700px) {
-      .system {
-        width: min(94vw, 520px);
-      }
-
-      .main-robot {
-        width: min(46vw, 240px);
-      }
-
-      .robot-a {
-        width: 290px;
-        height: 290px;
-        --size: 64px;
-        --radius: 145px;
-      }
-
-      .robot-b {
-        width: 380px;
-        height: 380px;
-        --size: 50px;
-        --radius: 190px;
-      }
-
-      .robot-c {
-        width: 450px;
-        height: 450px;
-        --size: 88px;
-        --radius: 225px;
-      }
-
-      .robot-d {
-        width: 340px;
-        height: 340px;
-        --size: 56px;
-        --radius: 170px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .main-robot,
-      .robot-orbit img {
-        animation: none;
-      }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-14px); }
-    }
-
-    @keyframes bob {
-      0%, 100% { margin-top: 0px; }
-      50% { margin-top: -10px; }
-    }
-
-    @keyframes orbit {
-      from {
-        transform: translate(-50%, calc(-1 * var(--radius))) rotate(0deg);
-      }
-      to {
-        transform: translate(-50%, calc(-1 * var(--radius))) rotate(360deg);
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rond Rouge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <div class="space">
-    <div class="scene">
-      <div class="system">
-        <div class="robot-orbit robot-a"><img src="robot.png" alt="Petit robot spatial" /></div>
-        <div class="robot-orbit robot-b"><img src="robot.png" alt="Robot spatial" /></div>
-        <div class="robot-orbit robot-c"><img src="robot.png" alt="Grand robot spatial" /></div>
-        <div class="robot-orbit robot-d"><img src="robot.png" alt="Robot tournoyant" /></div>
-
-        <div class="main-cluster">
-          <img class="main-robot" src="robot.png" alt="Robot principal" />
-          <div class="caption">Escadron de robots en mission spatiale</div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <canvas id="canvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Redimensionner le canvas
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Position de la souris
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        
+        // Liste de tous les ronds
+        const balls = [
+            {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 80,
+                color: '#ff4444',
+                vx: 2,
+                vy: 1.5,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: 0,
+                isBlinking: false,
+                eyes: {
+                    left: { x: -25, y: -10, size: 18 },
+                    right: { x: 25, y: -10, size: 18 }
+                }
+            },
+            {
+                x: 200,
+                y: 300,
+                radius: 50,
+                color: '#4488ff',
+                vx: -2.5,
+                vy: 2,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: 100,
+                isBlinking: false,
+                eyes: {
+                    left: { x: -15, y: -6, size: 12 },
+                    right: { x: 15, y: -6, size: 12 }
+                }
+            },
+            {
+                x: 600,
+                y: 250,
+                radius: 60,
+                color: '#44ff88',
+                vx: 3,
+                vy: -1.5,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: 50,
+                isBlinking: false,
+                eyes: {
+                    left: { x: -18, y: -8, size: 14 },
+                    right: { x: 18, y: -8, size: 14 }
+                }
+            },
+            {
+                x: 400,
+                y: 500,
+                radius: 40,
+                color: '#ffcc44',
+                vx: -1.5,
+                vy: -2.5,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: 150,
+                isBlinking: false,
+                eyes: {
+                    left: { x: -12, y: -5, size: 10 },
+                    right: { x: 12, y: -5, size: 10 }
+                }
+            },
+            {
+                x: 800,
+                y: 400,
+                radius: 70,
+                color: '#aa44ff',
+                vx: 2.5,
+                vy: -2,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: 200,
+                isBlinking: false,
+                eyes: {
+                    left: { x: -22, y: -9, size: 16 },
+                    right: { x: 22, y: -9, size: 16 }
+                }
+            },
+            {
+                x: 150,
+                y: 550,
+                radius: 35,
+                color: '#ff88cc',
+                vx: -3,
+                vy: 1,
+                eyeOffsetX: 0,
+                eyeOffsetY: 0,
+                blinkTimer: 80,
+                isBlinking: false,
+                eyes: {
+                    left: { x: -10, y: -4, size: 8 },
+                    right: { x: 10, y: -4, size: 8 }
+                }
+            }
+        ];
+        
+        // Liste des particules
+        const particles = [];
+        
+        // Étoiles en arrière-plan
+        const stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 0.5,
+                alpha: Math.random(),
+                twinkleSpeed: Math.random() * 0.02 + 0.01,
+                twinkleDirection: 1
+            });
+        }
+        
+        // Nébuleuses
+        const nebulas = [
+            {
+                x: canvas.width * 0.2,
+                y: canvas.height * 0.3,
+                radius: 400,
+                color1: '#4488ff',
+                color2: '#aa44ff',
+                opacity: 0.15,
+                speed: 0.3
+            },
+            {
+                x: canvas.width * 0.7,
+                y: canvas.height * 0.6,
+                radius: 500,
+                color1: '#ff4488',
+                color2: '#ffcc44',
+                opacity: 0.12,
+                speed: 0.25
+            },
+            {
+                x: canvas.width * 0.5,
+                y: canvas.height * 0.8,
+                radius: 350,
+                color1: '#44ff88',
+                color2: '#4488ff',
+                opacity: 0.1,
+                speed: 0.2
+            }
+        ];
+        
+        // Position actuelle des nébuleuses
+        const nebulasPosition = nebulas.map(n => ({ x: n.x, y: n.y }));
+        
+        // Gérer les collisions entre les ronds
+        function handleCollisions() {
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const ball1 = balls[i];
+                    const ball2 = balls[j];
+                    
+                    // Calculer la distance entre les deux ronds
+                    const dx = ball2.x - ball1.x;
+                    const dy = ball2.y - ball1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const minDistance = ball1.radius + ball2.radius;
+                    
+                    // Si collision
+                    if (distance < minDistance) {
+                        // Créer des particules au moment de la collision
+                        for (let k = 0; k < 8; k++) {
+                            particles.push({
+                                x: (ball1.x + ball2.x) / 2,
+                                y: (ball1.y + ball2.y) / 2,
+                                vx: (Math.random() - 0.5) * 6,
+                                vy: (Math.random() - 0.5) * 6,
+                                radius: Math.random() * 6 + 3,
+                                color: ball1.color,
+                                alpha: 1,
+                                decay: Math.random() * 0.03 + 0.02
+                            });
+                        }
+                        
+                        // Calculer l'angle de collision
+                        const angle = Math.atan2(dy, dx);
+                        const sin = Math.sin(angle);
+                        const cos = Math.cos(angle);
+                        
+                        // Rotation des positions
+                        const pos1 = { x: 0, y: 0 };
+                        const pos2 = { x: dx * cos + dy * sin, y: dy * cos - dx * sin };
+                        
+                        // Rotation des vitesses
+                        const vel1 = { x: ball1.vx * cos + ball1.vy * sin, y: ball1.vy * cos - ball1.vx * sin };
+                        const vel2 = { x: ball2.vx * cos + ball2.vy * sin, y: ball2.vy * cos - ball2.vx * sin };
+                        
+                        // Collision élastique (conservation de la quantité de mouvement)
+                        const mass1 = ball1.radius * ball1.radius; // Masse proportionnelle à l'aire
+                        const mass2 = ball2.radius * ball2.radius;
+                        
+                        const vel1Final = ((mass1 - mass2) * vel1.x + 2 * mass2 * vel2.x) / (mass1 + mass2);
+                        const vel2Final = ((mass2 - mass1) * vel2.x + 2 * mass1 * vel1.x) / (mass1 + mass2);
+                        
+                        vel1.x = vel1Final;
+                        vel2.x = vel2Final;
+                        
+                        // Séparer les ronds pour éviter qu'ils se chevauchent
+                        const overlap = minDistance - distance;
+                        const separationX = (overlap * Math.cos(angle)) / 2;
+                        const separationY = (overlap * Math.sin(angle)) / 2;
+                        
+                        ball1.x -= separationX;
+                        ball1.y -= separationY;
+                        ball2.x += separationX;
+                        ball2.y += separationY;
+                        
+                        // Rotation inverse des vitesses
+                        ball1.vx = vel1.x * cos - vel1.y * sin;
+                        ball1.vy = vel1.y * cos + vel1.x * sin;
+                        ball2.vx = vel2.x * cos - vel2.y * sin;
+                        ball2.vy = vel2.y * cos + vel2.x * sin;
+                    }
+                }
+            }
+        }
+        
+        // Créer des particules
+        function createParticles(ball) {
+            const numParticles = 3;
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: ball.x + (Math.random() - 0.5) * ball.radius * 0.5,
+                    y: ball.y + (Math.random() - 0.5) * ball.radius * 0.5,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    radius: Math.random() * 4 + 2,
+                    color: ball.color,
+                    alpha: 1,
+                    decay: Math.random() * 0.02 + 0.01
+                });
+            }
+        }
+        
+        // Mettre à jour et dessiner les particules
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                
+                // Mettre à jour la position
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // Réduire l'opacité
+                p.alpha -= p.decay;
+                
+                // Supprimer les particules invisibles
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    // Dessiner la particule
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+        
+        // Dessiner les étoiles
+        function drawStars() {
+            stars.forEach(star => {
+                // Faire scintiller les étoiles
+                star.alpha += star.twinkleSpeed * star.twinkleDirection;
+                if (star.alpha >= 1 || star.alpha <= 0.3) {
+                    star.twinkleDirection *= -1;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+            });
+        }
+        
+        // Mettre à jour et dessiner les nébuleuses
+        function drawNebulas() {
+            nebulas.forEach((nebula, index) => {
+                // Déplacer doucement les nébuleuses
+                nebulasPosition[index].x += Math.sin(Date.now() * 0.001 + index) * nebula.speed;
+                nebulasPosition[index].y += Math.cos(Date.now() * 0.001 + index) * nebula.speed;
+                
+                // Créer un dégradé radial
+                const gradient = ctx.createRadialGradient(
+                    nebulasPosition[index].x,
+                    nebulasPosition[index].y,
+                    0,
+                    nebulasPosition[index].x,
+                    nebulasPosition[index].y,
+                    nebula.radius
+                );
+                
+                gradient.addColorStop(0, nebula.color1);
+                gradient.addColorStop(0.5, nebula.color2);
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.globalAlpha = nebula.opacity;
+                ctx.beginPath();
+                ctx.arc(nebulasPosition[index].x, nebulasPosition[index].y, nebula.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+        }
+        
+        // Animation
+        function animate() {
+            // Effacer le canvas avec un léger effet de traînée
+            ctx.fillStyle = 'rgba(10, 10, 30, 0.4)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dessiner les nébuleuses en arrière-plan
+            drawNebulas();
+            
+            // Dessiner les étoiles
+            drawStars();
+            
+            // Mettre à jour et dessiner tous les ronds
+            balls.forEach((ball, index) => {
+                // Sauvegarder la position précédente pour créer des particules
+                const prevX = ball.x;
+                const prevY = ball.y;
+                
+                // Mettre à jour la position avec la vélocité
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                
+                // Créer des particules si le rond a bougé significativement
+                const distance = Math.sqrt(
+                    Math.pow(ball.x - prevX, 2) + Math.pow(ball.y - prevY, 2)
+                );
+                if (distance > 2) {
+                    createParticles(ball);
+                }
+                
+                // Rebondir sur les murs gauche et droite
+                if (ball.x - ball.radius < 0) {
+                    ball.x = ball.radius;
+                    ball.vx = -ball.vx;
+                    createParticles(ball); // Plus de particules au rebond
+                }
+                if (ball.x + ball.radius > canvas.width) {
+                    ball.x = canvas.width - ball.radius;
+                    ball.vx = -ball.vx;
+                    createParticles(ball);
+                }
+                
+                // Rebondir sur le haut et le bas
+                if (ball.y - ball.radius < 0) {
+                    ball.y = ball.radius;
+                    ball.vy = -ball.vy;
+                    createParticles(ball);
+                }
+                if (ball.y + ball.radius > canvas.height) {
+                    ball.y = canvas.height - ball.radius;
+                    ball.vy = -ball.vy;
+                    createParticles(ball);
+                }
+                
+                // Calculer l'offset des yeux basé sur la direction du mouvement
+                const eyeAngle = Math.atan2(ball.vy, ball.vx);
+                const eyeSpeed = 8;
+                ball.eyeOffsetX = Math.cos(eyeAngle) * eyeSpeed;
+                ball.eyeOffsetY = Math.sin(eyeAngle) * eyeSpeed;
+                
+                // Timer pour le clignement (décalé pour chaque rond)
+                ball.blinkTimer++;
+                if (ball.blinkTimer > 180 + Math.random() * 120) {
+                    ball.isBlinking = true;
+                    ball.blinkTimer = 0;
+                }
+                if (ball.blinkTimer > 10) {
+                    ball.isBlinking = false;
+                }
+                
+                // Dessiner le rond
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                
+                // Effet de brillance
+                ctx.beginPath();
+                ctx.arc(ball.x - 20, ball.y - 20, ball.radius * 0.25, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fill();
+                
+                // Dessiner les yeux
+                const eyeSize = ball.isBlinking ? 0 : ball.eyes.left.size;
+                
+                // Oeil gauche
+                ctx.beginPath();
+                ctx.ellipse(
+                    ball.x + ball.eyes.left.x + ball.eyeOffsetX,
+                    ball.y + ball.eyes.left.y + ball.eyeOffsetY,
+                    eyeSize,
+                    eyeSize * 0.8,
+                    0,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                
+                // Pupille gauche
+                ctx.beginPath();
+                ctx.arc(
+                    ball.x + ball.eyes.left.x + ball.eyeOffsetX + 5,
+                    ball.y + ball.eyes.left.y + ball.eyeOffsetY,
+                    eyeSize * 0.4,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = '#333';
+                ctx.fill();
+                
+                // Oeil droit
+                ctx.beginPath();
+                ctx.ellipse(
+                    ball.x + ball.eyes.right.x + ball.eyeOffsetX,
+                    ball.y + ball.eyes.right.y + ball.eyeOffsetY,
+                    eyeSize,
+                    eyeSize * 0.8,
+                    0,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                
+                // Pupille droite
+                ctx.beginPath();
+                ctx.arc(
+                    ball.x + ball.eyes.right.x + ball.eyeOffsetX + 5,
+                    ball.y + ball.eyes.right.y + ball.eyeOffsetY,
+                    eyeSize * 0.4,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = '#333';
+                ctx.fill();
+                
+                // Petit sourire
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y + ball.radius * 0.4, ball.radius * 0.3, 0.2, Math.PI - 0.2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            });
+            
+            // Gérer les collisions entre les ronds
+            handleCollisions();
+            
+            // Mettre à jour et dessiner les particules
+            updateParticles();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
 </body>
 </html>
